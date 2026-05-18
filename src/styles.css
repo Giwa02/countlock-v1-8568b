@@ -494,6 +494,11 @@ video {
   color: var(--bg);
 }
 
+.retake {
+  background: var(--red);
+  color: var(--bone);
+}
+
 /* ── Mobile ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 720px) {

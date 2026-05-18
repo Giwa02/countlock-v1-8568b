@@ -387,6 +387,7 @@ function OperatorView({ projectId, kitId, onBack, onError }) {
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [isCounting, setIsCounting] = useState(false);
+  const [isRetake, setIsRetake] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const kit = useMemo(
@@ -494,16 +495,21 @@ function OperatorView({ projectId, kitId, onBack, onError }) {
         imageBase64,
       });
 
-      setStatus(
-        result.pass
-          ? `Detected ${result.count} · Expected ${result.expected} · PASS`
-          : `Detected ${result.count} · Expected ${result.expected} · MISMATCH`
-      );
-
       await refreshProject();
 
-      if (partIndex < project.parts.length - 1) {
-        setPartIndex((value) => value + 1);
+      if (result.pass) {
+        // Pass — advance to next part and clear any retake state.
+        setIsRetake(false);
+        setStatus(`Part ${currentPart.part_id} · Detected ${result.count} · PASS ✓`);
+        if (partIndex < project.parts.length - 1) {
+          setPartIndex((value) => value + 1);
+        }
+      } else {
+        // Mismatch — stay on this part. Retaking REPLACES the count entirely.
+        setIsRetake(true);
+        setStatus(
+          `Part ${currentPart.part_id} · Detected ${result.count} of ${result.expected} — reposition and retake`
+        );
       }
     } catch (error) {
       onError(error.message);
@@ -558,6 +564,7 @@ function OperatorView({ projectId, kitId, onBack, onError }) {
   }
 
   function jumpToPart(index) {
+    setIsRetake(false);
     setPartIndex(index);
   }
 
@@ -663,11 +670,12 @@ function OperatorView({ projectId, kitId, onBack, onError }) {
           </button>
         ) : (
           <button
-            className="primary"
+            className={`primary${isRetake ? " retake" : ""}`}
             onClick={captureAndCount}
             disabled={isCounting || !cameraReady}
           >
-            <Camera size={26} /> {isCounting ? "Counting…" : "Picture"}
+            <Camera size={26} />
+            {isCounting ? "Counting…" : isRetake ? "Retake" : "Picture"}
           </button>
         )}
 
