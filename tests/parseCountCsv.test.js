@@ -126,6 +126,22 @@ Kit B,,`;
   }
 });
 
+check("parses tab-separated file (Excel export)", () => {
+  const tsv = "part\t1\t2\t3\nexpected #\t3\t6\t3\nKit 1\t\t\t\nKit 2\t\t\t";
+  const project = buildProjectFromCsv(tsv, "Tab Test");
+  if (project.parts.length !== 3) throw new Error(`expected 3 parts, got ${project.parts.length}`);
+  if (project.kitNames.length !== 2) throw new Error(`expected 2 kits, got ${project.kitNames.length}`);
+  if (project.parts[0].expected !== 3) throw new Error("expected count wrong");
+});
+
+check("parses real-world Excel tab file (10 parts, 3 kits)", () => {
+  const tsv = "part\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\nexpected #\t3\t6\t3\t6\t7\t8\t3\t6\t7\t33\nKit 1\t\t\t\t\t\t\t\t\t\t\nKit 2\t\t\t\t\t\t\t\t\t\t\nKit 3\t\t\t\t\t\t\t\t\t\t";
+  const project = buildProjectFromCsv(tsv, "Excel Test");
+  if (project.parts.length !== 10) throw new Error(`expected 10 parts, got ${project.parts.length}`);
+  if (project.parts[9].expected !== 33) throw new Error(`part 10 expected 33, got ${project.parts[9].expected}`);
+  if (project.kitNames.length !== 3) throw new Error(`expected 3 kits, got ${project.kitNames.length}`);
+});
+
 if (failures > 0) {
   console.error(`\n${failures} test(s) failed`);
   process.exit(1);

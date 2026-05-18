@@ -1,7 +1,16 @@
 // CSV parser: handles quoted fields with commas and escaped quotes.
 // Shared between the Netlify projects function and the unit test.
 
+function detectDelimiter(text) {
+  // Sniff the first non-empty line to decide comma vs tab.
+  const firstLine = text.slice(0, text.indexOf("\n") === -1 ? undefined : text.indexOf("\n"));
+  const tabs = (firstLine.match(/\t/g) || []).length;
+  const commas = (firstLine.match(/,/g) || []).length;
+  return tabs > commas ? "\t" : ",";
+}
+
 export function parseCsv(text) {
+  const delimiter = detectDelimiter(text);
   const rows = [];
   let current = [];
   let value = "";
@@ -16,7 +25,7 @@ export function parseCsv(text) {
       i += 1;
     } else if (char === '"') {
       inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
+    } else if (char === delimiter && !inQuotes) {
       current.push(value.trim());
       value = "";
     } else if ((char === "\n" || char === "\r") && !inQuotes) {
