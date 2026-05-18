@@ -519,3 +519,201 @@ video {
 
   .kit-header { flex-direction: column; }
 }
+
+/* ── Forms ───────────────────────────────────────────────────────────── */
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bone-dim);
+  margin-bottom: 8px;
+}
+
+.form-hint {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+  color: var(--bone-faint);
+  margin-left: 6px;
+}
+
+.form-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: var(--bone);
+  font: inherit;
+  font-size: 15px;
+  flex: 1;
+  min-width: 0;
+  transition: border-color 0.15s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.form-input::placeholder {
+  color: var(--bone-faint);
+}
+
+.form-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 10px;
+}
+
+button.small {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+button.icon-only {
+  padding: 6px 8px;
+  min-width: 0;
+}
+
+/* ── Initials modal ──────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.modal h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.modal-hint {
+  color: var(--bone-dim);
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.initials-input {
+  font-size: 28px !important;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.modal-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+}
+
+.modal-actions button { flex: 1; justify-content: center; }
+
+/* ── Initials badge ──────────────────────────────────────────────────── */
+
+.initials-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  background: rgba(184, 149, 56, 0.2);
+  color: var(--gold);
+  border: 1px solid rgba(184, 149, 56, 0.4);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ── Supervisor strip ────────────────────────────────────────────────── */
+
+.supervisor-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(252, 252, 252, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--bone-dim);
+}
+
+/* ── Finish summary (post-lock) ──────────────────────────────────────── */
+
+.finish-summary {
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid;
+}
+
+.finish-summary.pass {
+  background: rgba(78, 163, 114, 0.1);
+  border-color: rgba(78, 163, 114, 0.35);
+}
+
+.finish-summary.review {
+  background: rgba(194, 85, 58, 0.1);
+  border-color: rgba(194, 85, 58, 0.35);
+}
+
+.finish-summary-title {
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.finish-summary-email {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--bone-dim);
+  margin-bottom: 12px;
+}
+
+.finish-summary-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.finish-summary-actions button { flex: 1; justify-content: center; min-height: 48px; }
