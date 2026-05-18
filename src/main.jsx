@@ -81,6 +81,116 @@ function exportProjectCsv(project) {
   a.click(); URL.revokeObjectURL(url);
 }
 
+// ─── View: Training (uploads photos to Roboflow) ─────────────────────────────
+
+function TrainingView({ projectId, onDone, onError }) {
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [project, setProject] = useState(null);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadedCount, setUploadedCount] = useState(0);
+  const [lastStatus, setLastStatus] = useState("Lay out a part group and tap Capture.");
+
+  useEffect(() => {
+    let cancelled = false;
+    ProjectsApi.get(projectId)
+      .then(({ project }) => { if (!cancelled) setProject(project); })
+      .catch((e) => onError(e.message));
+    return () => { cancelled = true; };
+  }, [projectId]);
+
+  useEffect(() => {
+    let stream = null; let cancelled = false;
+    (async () => {
+      try {
+        const acquired = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }, audio: false,
+        });
+        if (cancelled) { acquired.getTracks().forEach((t) => t.stop()); return; }
+        stream = acquired;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setCameraReady(true);
+        }
+      } catch (e) {
+        if (!cancelled) setCameraError(`Camera unavailable: ${e.message}`);
+      }
+    })();
+    return () => { cancelled = true; if (stream) stream.getTracks().forEach((t) => t.stop()); };
+  }, []);
+
+  async function capture() {
+    if (!videoRef.current || !canvasRef.current || uploading) return;
+    setUploading(true);
+    try {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageBase64 = canvas.toDataURL("image/jpeg", 0.85);
+
+      const response = await fetch("/api/training-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64, projectName: project?.name || "training" }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || `Upload failed (${response.status})`);
+
+      setUploadedCount((n) => n + 1);
+      setLastStatus(
+        data.duplicate
+          ? "Uploaded (Roboflow flagged as duplicate — try a new angle)"
+          : `Uploaded ✓ — reposition for another shot`
+      );
+    } catch (e) {
+      onError(e.message);
+      setLastStatus(e.message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <section className="panel operator">
+      <div className="kit-header">
+        <div>
+          <p className="eyebrow">{project?.name || "Project"} · Training</p>
+          <h2>Collect Training Photos</h2>
+        </div>
+        <div className="kit-progress">
+          {uploadedCount} uploaded this session
+        </div>
+      </div>
+
+      <div className="training-tip">
+        <strong>Tip:</strong> Take 8-15 photos per part type. Vary the quantity
+        and position on the mat. Same camera angle as real counting.
+      </div>
+
+      <div className="camera-wrap">
+        <video ref={videoRef} autoPlay playsInline muted />
+        <canvas ref={canvasRef} hidden />
+        {!cameraReady && <div className="camera-placeholder">{cameraError || "Waiting for camera…"}</div>}
+      </div>
+
+      <div className="status">{lastStatus}</div>
+
+      <div className="buttons">
+        <button onClick={onDone}>
+          <CheckCircle2 size={22} /> Done
+        </button>
+        <button className="primary" onClick={capture} disabled={!cameraReady || uploading}>
+          <Camera size={26} /> {uploading ? "Uploading…" : "Capture"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 // ─── App shell / routing ──────────────────────────────────────────────────────
 
 function App() {
@@ -101,6 +211,7 @@ function App() {
           if (view.name === "kits") setView({ name: "projects" });
           else if (view.name === "operator") setView({ name: "kits", projectId: view.projectId });
           else if (view.name === "new-project") setView({ name: "projects" });
+          else if (view.name === "training") setView({ name: "kits", projectId: view.projectId });
         }}
       />
       {error && <div className="alert"><AlertCircle size={18} /> {error}</div>}
@@ -122,6 +233,14 @@ function App() {
         <KitListView
           projectId={view.projectId}
           onOpenKit={(kitId) => setView({ name: "operator", projectId: view.projectId, kitId })}
+          onTraining={() => setView({ name: "training", projectId: view.projectId })}
+          onError={showError}
+        />
+      )}
+      {view.name === "training" && (
+        <TrainingView
+          projectId={view.projectId}
+          onDone={() => setView({ name: "kits", projectId: view.projectId })}
           onError={showError}
         />
       )}
@@ -351,7 +470,7 @@ function NewProjectView({ onCreated, onError }) {
 
 // ─── View: Kit list ───────────────────────────────────────────────────────────
 
-function KitListView({ projectId, onOpenKit, onError }) {
+function KitListView({ projectId, onOpenKit, onTraining, onError }) {
   const [project, setProject] = useState(null);
   const [loadError, setLoadError] = useState("");
 
@@ -379,9 +498,14 @@ function KitListView({ projectId, onOpenKit, onError }) {
     <section className="panel">
       <div className="panel-head">
         <div><p className="eyebrow">Project</p><h2>{project.name}</h2></div>
-        <button className="ghost" onClick={() => exportProjectCsv(project)}>
-          <Download size={18} /> Export
-        </button>
+        <div className="header-actions">
+          <button className="ghost" onClick={onTraining}>
+            <Camera size={18} /> Training
+          </button>
+          <button className="ghost" onClick={() => exportProjectCsv(project)}>
+            <Download size={18} /> Export
+          </button>
+        </div>
       </div>
 
       {project.supervisor_emails?.length > 0 && (

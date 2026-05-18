@@ -717,3 +717,20 @@ button.icon-only {
 }
 
 .finish-summary-actions button { flex: 1; justify-content: center; min-height: 48px; }
+
+/* ── Training tip box ────────────────────────────────────────────────── */
+
+.training-tip {
+  background: rgba(184, 149, 56, 0.08);
+  border: 1px solid rgba(184, 149, 56, 0.3);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--bone-dim);
+  line-height: 1.5;
+}
+
+.training-tip strong {
+  color: var(--gold);
+}
