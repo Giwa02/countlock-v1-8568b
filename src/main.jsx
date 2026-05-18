@@ -526,7 +526,13 @@ function OperatorView({ projectId, kitId, onBack, onNextKit, onError }) {
         const acquired = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
         if (cancelled) { acquired.getTracks().forEach((t) => t.stop()); return; }
         stream = acquired;
-        if (videoRef.current) { videoRef.current.srcObject = stream; setCameraReady(true); }
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setCameraReady(true);
+          setStatus((prev) =>
+            prev === "Loading kit…" ? "Enter your initials to begin." : prev
+          );
+        }
       } catch (error) {
         if (!cancelled) setCameraError(`Camera unavailable: ${error.message}`);
       }
@@ -638,11 +644,6 @@ function OperatorView({ projectId, kitId, onBack, onNextKit, onError }) {
   );
   if (!project || !kit) return <div className="empty">Loading…</div>;
 
-  // Show initials modal before first interaction on an open kit
-  if (!isLocked && operatorInitials === null) {
-    return <InitialsModal onConfirm={handleInitials} />;
-  }
-
   const openKitsRemaining = project.kits.filter((k) => k.status === "open" && k.id !== kitId).length;
   const completed = project.parts.filter((p) => kit.counts?.[p.part_id]).length;
 
@@ -749,6 +750,12 @@ function OperatorView({ projectId, kitId, onBack, onNextKit, onError }) {
           <CheckCircle2 size={22} /> Finished
         </button>
       </div>
+
+      {/* Initials modal rendered as overlay — keeps video element in DOM so
+          camera warms up while the operator types their initials */}
+      {!isLocked && operatorInitials === null && (
+        <InitialsModal onConfirm={handleInitials} />
+      )}
     </section>
   );
 }
